@@ -59,23 +59,45 @@ class Player(GameSprite):
         bullets.add(bullet)
 
 #клас спрайту-ворога
-class Enemy(GameSprite):
+class Enemy_h(GameSprite):
     side = "left"
-    def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed):
+    def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed, x1, x2):
         # Викликаємо конструктор класу (Sprite):
         GameSprite.__init__(self, player_image, player_x, player_y, size_x, size_y)
         self.speed = player_speed
+        self.x1 =x1
+        self.x2 =x2
 
    #рух ворога
     def update(self):
-        if self.rect.x <= 420: #w1.wall_x + w1.wall_width
+        if self.rect.x <= self.x1: 
             self.side = "right"
-        if self.rect.x >= win_width - 85:
+        if self.rect.x >= self.x2:
             self.side = "left"
         if self.side == "left":
             self.rect.x -= self.speed
         else:
             self.rect.x += self.speed
+
+class Enemy_v(GameSprite):
+    side = "up"
+    def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed, y1, y2):
+        # Викликаємо конструктор класу (Sprite):
+        GameSprite.__init__(self, player_image, player_x, player_y, size_x, size_y)
+        self.speed = player_speed
+        self.y1 =y1
+        self.y2 =y2
+
+   #рух ворога
+    def update(self):
+        if self.rect.y <= self.y1: #w1.wall_x + w1.wall_width
+            self.side = "down"
+        if self.rect.y >= self.y2:
+            self.side = "up"
+        if self.side == "up":
+            self.rect.y -= self.speed
+        else:
+            self.rect.y += self.speed
 
 # клас спрайту-кулі
 class Bullet(GameSprite):
@@ -93,9 +115,9 @@ class Bullet(GameSprite):
 #Створюємо віконце
 win_width = 700
 win_height = 500
-display.set_caption("Лабіринт")
 window = display.set_mode((win_width, win_height))
-back = (119, 210, 223) # задаємо колір відповідно до колірної схеми RGB
+display.set_caption("Лабіринт")
+back = transform.scale(image.load("jungle.jpg"), (win_width, win_height))
 
 #Створюємо групу для стін
 barriers = sprite.Group()
@@ -116,13 +138,15 @@ barriers.add(w2)
 
 #створюємо спрайти
 packman = Player('hero.png', 5, win_height - 80, 80, 80, 0, 0)
-monster1 = Enemy('cyborg.png', win_width - 80, 180, 80, 80, 5)
-monster2 = Enemy('cyborg.png', win_width - 80, 90, 80, 80, 5)
+monster1 = Enemy_v('cyborg.png', win_width - 200, 200, 80, 80, 5, 200, 420)
+monster2 = Enemy_h('cyborg.png', win_width - 80, 90, 80, 80, 5, 420, win_width-85)
+monster3 = Enemy_h('cyborg.png', 0, 90, 80, 80, 5, 0, 200)
 final_sprite = GameSprite('pac-1.png', win_width - 85, win_height - 100, 80, 80)
 
 #додаємо монстра до групи
 monsters.add(monster1)
 monsters.add(monster2)
+monsters.add(monster3)
 #змінна, що відповідає за те, як закінчилася гра
 finish = False
 #ігровий цикл
@@ -160,7 +184,7 @@ while run:
 #перевірка, що гра ще не завершена
     if not finish:
         #оновлюємо фон кожну ітерацію
-        window.fill(back)#зафарбовуємо вікно кольором
+        window.blit(back, (0, 0))#зафарбовуємо вікно кольором
         
         #запускаємо рухи спрайтів
         packman.update()
@@ -181,16 +205,12 @@ while run:
         #Перевірка зіткнення героя з ворогом та стінами
         if sprite.spritecollide(packman, monsters, False):
             finish = True
-            # обчислюємо ставлення
             img = image.load('game-over_1.png')
-            d = img.get_width() // img.get_height()
-            window.fill((255, 255, 255))
-            window.blit(transform.scale(img, (win_height * d, win_height)), (90, 0))
+            window.blit(transform.scale(img, (win_width, win_height)), (0, 0))
 
         if sprite.collide_rect(packman, final_sprite):
             finish = True
             img = image.load('thumb.jpg')
-            window.fill((255, 255, 255))
             window.blit(transform.scale(img, (win_width, win_height)), (0, 0))
     
     display.update()
